@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deal Memo Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="noise-overlay"></div>
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo-mark"></div>
+            <span class="logo-text">DEAL MEMO AGENT</span>
+            <span class="logo-version">v1.0</span>
+        </div>
+        <div class="topbar-right">
+            <span class="topbar-status" id="connectionStatus">READY</span>
+            <span class="topbar-divider"></span>
+            <span class="topbar-time" id="currentTime"></span>
+        </div>
+    </header>
+
+    <!-- SCREEN 1: Upload -->
+    <main class="screen screen--upload active" id="uploadScreen">
+        <div class="upload-container">
+            <div class="upload-header">
+                <h1 class="upload-title">Investment Memo<br><span class="accent">Drafting System</span></h1>
+                <p class="upload-subtitle">Upload a Confidential Information Memorandum to generate a first-pass investment memo with live market intelligence.</p>
+            </div>
+
+            <div class="dropzone" id="dropzone">
+                <div class="dropzone-inner">
+                    <div class="dropzone-icon">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                            <rect x="8" y="4" width="32" height="40" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M16 20h16M16 26h16M16 32h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M28 4v10h10" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="dropzone-text">
+                        <span class="dropzone-primary">Drop CIM here</span>
+                        <span class="dropzone-secondary">or click to browse — PDF only, max 50 MB</span>
+                    </div>
+                    <input type="file" id="fileInput" accept=".pdf,application/pdf" hidden>
+                </div>
+            </div>
+
+            <div class="file-info hidden" id="fileInfo">
+                <div class="file-info-icon">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <rect x="3" y="1" width="14" height="18" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+                        <path d="M7 8h6M7 11h6M7 14h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="file-info-details">
+                    <span class="file-info-name" id="fileName"></span>
+                    <span class="file-info-size" id="fileSize"></span>
+                </div>
+                <button class="file-info-remove" id="removeFile" title="Remove file">&times;</button>
+            </div>
+
+            <button class="btn btn--primary hidden" id="analyzeBtn">
+                <span class="btn-text">Analyze Document</span>
+                <span class="btn-arrow">&rarr;</span>
+            </button>
+
+            <div class="upload-error hidden" id="uploadError"></div>
+
+            <div class="upload-footer">
+                <div class="footer-item">
+                    <span class="footer-label">Pipeline</span>
+                    <span class="footer-value">Ingest &rarr; Extract &rarr; Enrich &rarr; Draft &rarr; Export</span>
+                </div>
+                <div class="footer-item">
+                    <span class="footer-label">Model</span>
+                    <span class="footer-value">Claude Sonnet 4.5</span>
+                </div>
+                <div class="footer-item">
+                    <span class="footer-label">Sources</span>
+                    <span class="footer-value">CIM + Tavily Web Intelligence</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SCREEN 2: Processing -->
+    <main class="screen screen--processing" id="processingScreen">
+        <div class="processing-container">
+            <div class="processing-header">
+                <h2 class="processing-title">Analyzing <span class="accent" id="processingFileName">document</span></h2>
+                <p class="processing-subtitle" id="processingSubtitle">Pipeline initializing...</p>
+            </div>
+
+            <div class="pipeline">
+                <div class="pipeline-stage" data-stage="ingest">
+                    <div class="stage-indicator">
+                        <div class="stage-dot"></div>
+                        <div class="stage-line"></div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-header">
+                            <span class="stage-name">Ingest</span>
+                            <span class="stage-badge">PDF Parsing</span>
+                        </div>
+                        <p class="stage-desc">Parse PDF, extract tables, split into token-aware chunks</p>
+                        <p class="stage-message" id="msg-ingest"></p>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage" data-stage="extract">
+                    <div class="stage-indicator">
+                        <div class="stage-dot"></div>
+                        <div class="stage-line"></div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-header">
+                            <span class="stage-name">Extract</span>
+                            <span class="stage-badge">LLM Analysis</span>
+                        </div>
+                        <p class="stage-desc">Map-reduce extraction of structured deal fields via Claude</p>
+                        <p class="stage-message" id="msg-extract"></p>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage" data-stage="enrich">
+                    <div class="stage-indicator">
+                        <div class="stage-dot"></div>
+                        <div class="stage-line"></div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-header">
+                            <span class="stage-name">Enrich</span>
+                            <span class="stage-badge">Web Intelligence</span>
+                        </div>
+                        <p class="stage-desc">Comps, M&amp;A transactions, news, and sector data via Tavily</p>
+                        <p class="stage-message" id="msg-enrich"></p>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage" data-stage="draft">
+                    <div class="stage-indicator">
+                        <div class="stage-dot"></div>
+                        <div class="stage-line"></div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-header">
+                            <span class="stage-name">Draft</span>
+                            <span class="stage-badge">Memo Synthesis</span>
+                        </div>
+                        <p class="stage-desc">Section-by-section memo drafting with grounded citations</p>
+                        <p class="stage-message" id="msg-draft"></p>
+                    </div>
+                </div>
+
+                <div class="pipeline-stage" data-stage="export">
+                    <div class="stage-indicator">
+                        <div class="stage-dot"></div>
+                    </div>
+                    <div class="stage-content">
+                        <div class="stage-header">
+                            <span class="stage-name">Export</span>
+                            <span class="stage-badge">Output</span>
+                        </div>
+                        <p class="stage-desc">Render to markdown and DOCX with source appendix</p>
+                        <p class="stage-message" id="msg-export"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="processing-error hidden" id="processingError">
+                <span class="error-icon">!</span>
+                <span class="error-text" id="processingErrorText"></span>
+            </div>
+        </div>
+    </main>
+
+    <!-- SCREEN 3: Memo Display -->
+    <main class="screen screen--memo" id="memoScreen">
+        <div class="memo-disclaimer">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l7 14H1L8 1z" stroke="currentColor" stroke-width="1.2"/><path d="M8 6v4M8 12v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            AI-ASSISTED DRAFT — FOR INTERNAL REVIEW ONLY — NOT FOR DISTRIBUTION
+        </div>
+
+        <div class="memo-layout">
+            <div class="memo-main">
+                <div class="memo-header">
+                    <div class="memo-header-top">
+                        <h1 class="memo-company" id="memoCompany">Company Name</h1>
+                        <div class="memo-actions">
+                            <button class="btn btn--outline" id="expandAllBtn">Expand All</button>
+                            <a class="btn btn--primary btn--download" id="downloadBtn" href="#">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 8l4 4 4-4M2 13h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                Download DOCX
+                            </a>
+                        </div>
+                    </div>
+                    <div class="memo-meta">
+                        <span id="memoDate"></span>
+                        <span class="meta-sep">&middot;</span>
+                        <span id="memoModel"></span>
+                    </div>
+                </div>
+
+                <div class="memo-sections" id="memoSections"></div>
+
+                <div class="memo-sources" id="memoSources">
+                    <h3 class="sources-title">Sources</h3>
+                    <div class="sources-list" id="sourcesList"></div>
+                </div>
+            </div>
+
+            <aside class="memo-sidebar" id="memoSidebar">
+                <div class="sidebar-header">
+                    <h3>Extraction Data</h3>
+                    <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                </div>
+                <div class="sidebar-content" id="sidebarContent"></div>
+            </aside>
+        </div>
+
+        <button class="btn-back" id="backBtn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            New Analysis
+        </button>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
