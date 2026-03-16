@@ -1,6 +1,6 @@
 # Deal Memo Agent
 
-An AI-powered investment memo drafting system. Analysts upload a CIM (Confidential Information Memorandum) or financial documents; the agent extracts structured deal data, enriches it with live web intelligence, and produces a first-pass investment memo in Sagard's standard format.
+An AI-powered investment memo drafting system. Analysts upload a CIM (Confidential Information Memorandum) or financial documents; the agent extracts structured deal data, enriches it with live web intelligence, and produces a first-pass investment memo.
 
 ---
 
