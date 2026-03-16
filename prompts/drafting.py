@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from models.deal import DealExtraction, DealEnrichment
 
-DRAFTING_SYSTEM = """You are a senior investment analyst at Sagard, a multi-strategy alternative \
+DRAFTING_SYSTEM = """You are a senior investment analyst at a multi-strategy alternative \
 asset management firm. You write clear, rigorous, concise investment memos.
 
 Style:
